@@ -3,7 +3,7 @@ import numpy as np
 from utils import load_csv_files
 
 
-class Test_load_csv_files(unittest.TestCase):
+class TestLoadCsvFiles(unittest.TestCase):
 
     lr_train_data, hr_train_data, lr_test_data = load_csv_files()
     lr_train_matrix, hr_train_matrix, lr_test_matrix = load_csv_files(
