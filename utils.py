@@ -101,7 +101,10 @@ def save_csv_prediction(input, input_matrix = False, include_diagonal=False, log
         if logs:
             print(input.shape)
 
+    # Post-processing
+    input = np.maximum(input, 0)
     meltedDF = input.to_numpy().flatten()
+    
     file_name = "submissions/"+time.strftime("%Y%m%d-%H%M%S")+"_submission.csv"
     np.savetxt(file_name, meltedDF, delimiter=',', fmt='%f', header=["ID","Predicted"], comments='')
     if logs:
