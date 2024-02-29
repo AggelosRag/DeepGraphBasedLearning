@@ -2,20 +2,21 @@
 
 import numpy as np
 
+
 class MatrixVectorizer:
     """
     A class for transforming between matrices and vector representations.
-    
+
     This class provides methods to convert a symmetric matrix into a vector (vectorize)
-    and to reconstruct the matrix from its vector form (anti_vectorize), focusing on 
+    and to reconstruct the matrix from its vector form (anti_vectorize), focusing on
     vertical (column-based) traversal and handling of elements.
     """
 
     def __init__(self):
         """
         Initializes the MatrixVectorizer instance.
-        
-        The constructor currently does not perform any actions but is included for 
+
+        The constructor currently does not perform any actions but is included for
         potential future extensions where initialization parameters might be required.
         """
         pass
@@ -24,16 +25,16 @@ class MatrixVectorizer:
     def vectorize(matrix, include_diagonal=False):
         """
         Converts a matrix into a vector by vertically extracting elements.
-        
+
         This method traverses the matrix column by column, collecting elements from the
         upper triangle, and optionally includes the diagonal elements immediately below
         the main diagonal based on the include_diagonal flag.
-        
+
         Parameters:
         - matrix (numpy.ndarray): The matrix to be vectorized.
         - include_diagonal (bool, optional): Flag to include diagonal elements in the vectorization.
           Defaults to False.
-        
+
         Returns:
         - numpy.ndarray: The vectorized form of the matrix.
         """
@@ -47,7 +48,7 @@ class MatrixVectorizer:
         for col in range(matrix_size):
             for row in range(matrix_size):
                 # Skip diagonal elements if not including them
-                if row != col:  
+                if row != col:
                     if row < col:
                         # Collect upper triangle elements
                         vector_elements.append(matrix[row, col])
@@ -61,16 +62,16 @@ class MatrixVectorizer:
     def anti_vectorize(vector, matrix_size, include_diagonal=False):
         """
         Reconstructs a matrix from its vector form, filling it vertically.
-        
+
         The method fills the matrix by reflecting vector elements into the upper triangle
         and optionally including the diagonal elements based on the include_diagonal flag.
-        
+
         Parameters:
         - vector (numpy.ndarray): The vector to be transformed into a matrix.
         - matrix_size (int): The size of the square matrix to be reconstructed.
         - include_diagonal (bool, optional): Flag to include diagonal elements in the reconstruction.
           Defaults to False.
-        
+
         Returns:
         - numpy.ndarray: The reconstructed square matrix.
         """
@@ -84,7 +85,7 @@ class MatrixVectorizer:
         for col in range(matrix_size):
             for row in range(matrix_size):
                 # Skip diagonal elements if not including them
-                if row != col:  
+                if row != col:
                     if row < col:
                         # Reflect vector elements into the upper triangle and its mirror in the lower triangle
                         matrix[row, col] = vector[vector_idx]
