@@ -75,6 +75,8 @@ def evaluate(
     mae_bc = []
     mae_ec = []
     mae_pc = []
+    pred_1d_list = []
+    gt_1d_list = []
 
     # Iterate over each test sample
     for i in range(num_test_samples):
@@ -109,14 +111,18 @@ def evaluate(
         mae_ec.append(mean_absolute_error(pred_ec_values, gt_ec_values))
         mae_pc.append(mean_absolute_error(pred_pc_values, gt_pc_values))
 
+        # Vectorize matrices
+        pred_1d_list.append(MatrixVectorizer.vectorize(predictions_matrixes[i]))
+        gt_1d_list.append(MatrixVectorizer.vectorize(truths_matrixes[i]))
+
+    # Concatenate flattened matrices
+    pred_1d = np.concatenate(pred_1d_list)
+    gt_1d = np.concatenate(gt_1d_list)
+
     # Compute average MAEs
     avg_mae_bc = sum(mae_bc) / len(mae_bc)
     avg_mae_ec = sum(mae_ec) / len(mae_ec)
     avg_mae_pc = sum(mae_pc) / len(mae_pc)
-
-    # vectorize and flatten
-    pred_1d = predictions_vectors.flatten()
-    gt_1d = truths_vectors.flatten()
 
     mae = mean_absolute_error(pred_1d, gt_1d)
     pcc = pearsonr(pred_1d, gt_1d)[0]
