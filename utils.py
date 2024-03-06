@@ -244,17 +244,9 @@ def plot_evaluations(scores):
 
     average_folds = np.mean(np.array(scores), axis=0)
     std_folds = np.std(np.array(scores), axis=0)
-    axes[1, 1].bar(range(len(average_folds)), average_folds, color=colors)
-
-    axes[1, 1].errorbar(
-        range(len(average_folds)),
-        average_folds,
-        yerr=std_folds,
-        linestyle="None",
-        color="black",
-        capsize=5,
+    axes[1, 1].bar(
+        range(len(average_folds)), average_folds, color=colors, yerr=std_folds
     )
-
     axes[1, 1].set_title("Average Across Folds")
     axes[1, 1].set_ylim(0, 1)
     axes[1, 1].set_xticks(np.arange(len(labels)))
