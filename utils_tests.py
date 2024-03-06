@@ -1,6 +1,12 @@
+"""
+This file contains unit tests for the functions in utils.py. The functions are tested for correctness and expected behavior.
+"""
+
 import unittest
+
 import numpy as np
 import torch
+
 from utils import (
     load_csv_files,
     save_csv_prediction,
@@ -10,7 +16,6 @@ from utils import (
 
 
 class TestLoadCsvFiles(unittest.TestCase):
-
     lr_train_data, hr_train_data, lr_test_data = load_csv_files()
     lr_train_matrix, hr_train_matrix, lr_test_matrix = load_csv_files(
         return_matrix=True
@@ -44,7 +49,6 @@ class TestLoadCsvFiles(unittest.TestCase):
 
 
 class TestSaveCsvFile(unittest.TestCase):
-
     FILE_PATH = "submissions/test_submission.csv"
 
     def test_csv(self):
@@ -64,9 +68,8 @@ class TestSaveCsvFile(unittest.TestCase):
 
 
 class Test3CV(unittest.TestCase):
-
     class DullModel:
-        def fit(self, X, Y):
+        def fit(self, X, Y, verbose=False):
             pass
 
         def predict(self, X):
@@ -81,8 +84,10 @@ class Test3CV(unittest.TestCase):
         lr_train_data[lr_train_data < 0] = 0
         hr_train_data[hr_train_data < 0] = 0
 
+        model_init = lambda: self.model
+
         scores = three_fold_cross_validation(
-            self.model, lr_train_data, hr_train_data, logs=True, prediction_vector=True
+            model_init, lr_train_data, hr_train_data, verbose=True, prediction_vector=True
         )
 
         assert len(scores) == 3

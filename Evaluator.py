@@ -1,33 +1,39 @@
 # Partially from: https://github.com/basiralab/DGL/blob/main/Project/evaluation_measures.py
 
-from MatrixVectorizer import MatrixVectorizer
-from sklearn.metrics import mean_squared_error, mean_absolute_error
-from scipy.stats import pearsonr
-from scipy.spatial.distance import jensenshannon
-from numpy import linalg as LA
-import torch
-import numpy as np
 import networkx as nx
+import numpy as np
+import torch
+from scipy.spatial.distance import jensenshannon
+from scipy.stats import pearsonr
+from sklearn.metrics import mean_absolute_error
+
+from MatrixVectorizer import MatrixVectorizer
 from constants import *
 
 
 def evaluate(
-    truths_vectors,
-    predictions_matrixes=None,
-    predictions_vectors=None,
-    include_diagonal=False,
-    logs=False,
-    include_fid=False,
+        truths_vectors=None,
+        truths_matrices=None,
+        predictions_matrices=None,
+        predictions_vectors=None,
+        include_diagonal=False,
+        verbose=False,
+        include_fid=False,
 ):
     """
     Evaluate the performance of centrality prediction on graph data.
 
     Parameters:
-    - truths_vectors (numpy array): Ground truth.
-    - predictions_matrixes (numpy array, optional): Predicted adjacency matrices, if this parameter is not provided, predictions_vectors is required.
-    - predictions_vectors (numpy array, optional): Predicted centrality values for nodes, if this parameter is not provided, predictions_matrixes is required.
+    - truths_vectors (numpy array): Ground truth in vectorized form. If this parameter is not provided, truths_matrices
+    is required.
+    - truths_matrices (numpy array): Ground truth in matrix form. If this parameter is not provided, truths_vectors is
+    required.
+    - predictions_matrices (numpy array, optional): Predicted adjacency matrices, if this parameter is not provided,
+    predictions_vectors is required.
+    - predictions_vectors (numpy array, optional): Predicted centrality values for nodes, if this parameter is not
+    provided, predictions_matrices is required.
     - include_diagonal (bool, optional): Include diagonal elements in computations.
-    - logs (bool, optional): Print intermediate results if True.
+    - verbose (bool, optional): Print intermediate results if True.
     - include_fid (bool, optional): Include Frechet Inception Distance (FID) computation if True.
 
     Returns:
@@ -37,39 +43,45 @@ def evaluate(
     """
 
     # Check on optional inputs
-    assert predictions_matrixes is not None or predictions_vectors is not None
+    assert predictions_matrices is not None or predictions_vectors is not None
+    assert truths_matrices is not None or truths_vectors is not None
 
-    if predictions_matrixes is None:
+    if predictions_matrices is None:
         # Apply anti-vectorization
-        predictions_matrixes = np.empty(
+        predictions_matrices = np.empty(
             (predictions_vectors.shape[0], HR_MATRIX_SIZE, HR_MATRIX_SIZE)
         )
         for i, prediction in enumerate(predictions_vectors):
-            predictions_matrixes[i] = MatrixVectorizer.anti_vectorize(
+            predictions_matrices[i] = MatrixVectorizer.anti_vectorize(
                 prediction, HR_MATRIX_SIZE, include_diagonal
             )
     else:
         # Apply vectorization
-        predictions_vectors = np.empty((predictions_matrixes.shape[0], HR_ARRAY_SIZE))
-        for i, prediction in enumerate(predictions_matrixes):
+        predictions_vectors = np.empty((predictions_matrices.shape[0], HR_ARRAY_SIZE))
+        for i, prediction in enumerate(predictions_matrices):
             predictions_vectors[i] = MatrixVectorizer.vectorize(
                 prediction, include_diagonal
             )
 
     # Apply anti-vectorization on truth
-    truths_matrixes = np.empty(
-        (truths_vectors.shape[0], HR_MATRIX_SIZE, HR_MATRIX_SIZE)
-    )
-    for i, truth in enumerate(truths_vectors):
-        truths_matrixes[i] = MatrixVectorizer.anti_vectorize(
-            truth, HR_MATRIX_SIZE, include_diagonal
+    if truths_matrices is None:
+        truths_matrices = np.empty(
+            (truths_vectors.shape[0], HR_MATRIX_SIZE, HR_MATRIX_SIZE)
         )
+        for i, truth in enumerate(truths_vectors):
+            truths_matrices[i] = MatrixVectorizer.anti_vectorize(
+                truth, HR_MATRIX_SIZE, include_diagonal
+            )
+    else:
+        truths_vectors = np.empty((truths_matrices.shape[0], HR_ARRAY_SIZE))
+        for i, truth in enumerate(truths_matrices):
+            truths_vectors[i] = MatrixVectorizer.vectorize(truth, include_diagonal)
 
-    num_test_samples = predictions_matrixes.shape[0]
+    num_test_samples = predictions_matrices.shape[0]
 
     # post-processing on predictions
-    predictions_matrixes[predictions_matrixes < 0] = 0
-    predictions_vectors[predictions_vectors < 0] = 0
+    predictions_matrices = np.maximum(predictions_matrices, 0)
+    predictions_vectors = np.maximum(predictions_vectors, 0)
 
     # Initialize lists to store MAEs for each centrality measure
     mae_bc = []
@@ -79,12 +91,20 @@ def evaluate(
     # Iterate over each test sample
     for i in range(num_test_samples):
 
-        if logs:
+        if verbose:
             print(i)
 
         # Convert adjacency matrices to NetworkX graphs
-        pred_graph = nx.from_numpy_array(predictions_matrixes[i])
-        gt_graph = nx.from_numpy_array(truths_matrixes[i])
+        if isinstance(predictions_matrices[i], torch.Tensor):
+            predictions_matrix = predictions_matrices[i].cpu().numpy()
+        else:
+            predictions_matrix = predictions_matrices[i]
+        if isinstance(truths_matrices[i], torch.Tensor):
+            truths_matrix = truths_matrices[i].cpu().numpy()
+        else:
+            truths_matrix = truths_matrices[i]
+        pred_graph = nx.from_numpy_array(predictions_matrix)
+        gt_graph = nx.from_numpy_array(truths_matrix)
 
         # Compute centrality measures
         pred_bc = nx.betweenness_centrality(pred_graph, weight="weight")
@@ -135,7 +155,7 @@ def evaluate(
             )
         )
 
-    if logs:
+    if verbose:
         print("MAE: ", mae)
         print("PCC: ", pcc)
         print("Jensen-Shannon Distance: ", js_dis)

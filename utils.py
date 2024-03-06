@@ -9,19 +9,17 @@ pre-processing, post-processing and evaluation
 
 # Imports
 
-import os
-import numpy as np
-import matplotlib.pyplot as plt
-import torch
 import time
+
+import matplotlib.pyplot as plt
+import numpy as np
 import psutil
+import torch
 from sklearn.model_selection import KFold
 
-from MatrixVectorizer import MatrixVectorizer
 from Evaluator import evaluate
+from MatrixVectorizer import MatrixVectorizer
 from constants import *
-
-# Functions for data loading
 
 
 def load_csv_files(return_matrix=False, include_diagonal=False):
@@ -31,7 +29,6 @@ def load_csv_files(return_matrix=False, include_diagonal=False):
     Parameters:
     - return_matrix (bool): If True, applies anti-vectorization to return matrices.
     - include_diagonal (bool): If True and return_matrix is True, includes diagonal elements in anti-vectorization.
-    - logs (bool): If True, prints the shape of the loaded data.
 
     Returns:
     - Tuple of NumPy arrays: Contains loaded data (lr_train, hr_train, lr_test).
@@ -53,64 +50,64 @@ def load_csv_files(return_matrix=False, include_diagonal=False):
 
     if return_matrix:
         # Apply anti-vectorization
-        hr_train_matrixes = np.empty(
+        hr_train_matrices = np.empty(
             (hr_train_data.shape[0], HR_MATRIX_SIZE, HR_MATRIX_SIZE)
         )
         for i, sample in enumerate(hr_train_data):
-            hr_train_matrixes[i] = MatrixVectorizer.anti_vectorize(
+            hr_train_matrices[i] = MatrixVectorizer.anti_vectorize(
                 sample, HR_MATRIX_SIZE, include_diagonal
             )
 
-        lr_train_matrixes = np.empty(
+        lr_train_matrices = np.empty(
             (lr_train_data.shape[0], LR_MATRIX_SIZE, LR_MATRIX_SIZE)
         )
         for i, sample in enumerate(lr_train_data):
-            lr_train_matrixes[i] = MatrixVectorizer.anti_vectorize(
+            lr_train_matrices[i] = MatrixVectorizer.anti_vectorize(
                 sample, LR_MATRIX_SIZE, include_diagonal
             )
 
-        lr_test_matrixes = np.empty(
+        lr_test_matrices = np.empty(
             (lr_test_data.shape[0], LR_MATRIX_SIZE, LR_MATRIX_SIZE)
         )
         for i, sample in enumerate(lr_test_data):
-            lr_test_matrixes[i] = MatrixVectorizer.anti_vectorize(
+            lr_test_matrices[i] = MatrixVectorizer.anti_vectorize(
                 sample, LR_MATRIX_SIZE, include_diagonal
             )
 
-        return (lr_train_matrixes, hr_train_matrixes, lr_test_matrixes)
+        return (lr_train_matrices, hr_train_matrices, lr_test_matrices)
 
     return (lr_train_data, hr_train_data, lr_test_data)
 
 
 def save_csv_prediction(
-    input, input_matrix=False, include_diagonal=False, logs=False, file_name=None
+        predictions, pred_matrix=False, include_diagonal=False, logs=False, file_name=None
 ):
     """
     Save predictions in CSV format.
 
     Parameters:
-    - input: Numpy array containing the predictions of test set.
-    - input_matrix (bool): If True, assumes input is a adjacency matrix and applies vectorization.
+    - predictions: Numpy array containing the predictions of test set.
+    - pred_matrix (bool): If True, assumes predictions is an adjacency matrix and applies vectorization.
     - include_diagonal (bool): If True and input_matrix is True, includes diagonal elements in vectorization.
     - logs (bool): If True, prints the shape of the vectorized matrix.
-
-    Returns:
-    - None
     """
 
-    if input_matrix:
+    if isinstance(predictions, torch.Tensor):
+        predictions = predictions.cpu().numpy()
+
+    if pred_matrix:
         # Apply vectorization
-        df_vector = np.empty((input.shape[0], HR_ARRAY_SIZE))
-        for i, prediction in enumerate(input):
+        df_vector = np.empty((predictions.shape[0], HR_ARRAY_SIZE))
+        for i, prediction in enumerate(predictions):
             df_vector[i] = MatrixVectorizer.vectorize(prediction, include_diagonal)
 
-        input = df_vector
+        predictions = df_vector
         if logs:
-            print(input.shape)
+            print(predictions.shape)
 
     # Post-processing
-    input = np.maximum(input, 0)
-    array_d1 = input.flatten()
+    predictions = np.maximum(predictions, 0)
+    array_d1 = predictions.flatten()
     array_indexes = np.vstack((np.arange(1, len(array_d1) + 1), array_d1)).T
 
     if file_name is None:
@@ -131,25 +128,27 @@ def save_csv_prediction(
 
 
 def three_fold_cross_validation(
-    model,
-    X,
-    Y,
-    random_state=None,
-    prediction_vector=False,
-    include_diagonal=False,
-    logs=False,
+        model_init,
+        X,
+        Y,
+        label_vector=True,
+        random_state=None,
+        prediction_vector=False,
+        include_diagonal=False,
+        verbose=False,
 ):
     """
     Perform three-fold cross-validation on a given model.
 
     Parameters:
-    - model: The machine learning model to be evaluated.
+    - model_init: Function that returns an instance of the model to be evaluated.
     - X: The input features.
-    - Y: The target labels (vectorized version)
+    - Y: The target labels
+    - label_vector: Whether the target labels are vectorized or not.
+    - prediction_vector: Whether the predictions are vectorized or not.
     - random_state: Seed for reproducibility in cross-validation.
-    - input_matrix: Whether to apply vectorization to the predictions of the model.
     - include_diagonal: Include diagonal elements during vectorization if input_matrix is True.
-    - logs: Print training time and RAM usage if True.
+    - verbose: Print logging information.
 
     Returns:
     - scores: List of evaluation scores for each fold.
@@ -163,35 +162,41 @@ def three_fold_cross_validation(
     process = psutil.Process()
 
     for train_index, val_index in kf.split(X):
-
+        model = model_init()
         start_time = time.time()
-        model.fit(X[train_index], Y[train_index])
+        model.fit(X[train_index], Y[train_index], verbose=verbose)
         end_time = time.time()
         training_time += end_time - start_time
 
         Y_prediction = model.predict(X[val_index])
 
-        truths_vectors = Y[val_index]
-        assert len(truths_vectors.shape) == 2
+        args = {"include_diagonal": include_diagonal, "verbose": verbose}
+
+        if label_vector:
+            truths_vectors = Y[val_index]
+            assert len(truths_vectors.shape) == 2
+            if isinstance(truths_vectors, torch.Tensor):
+                truths_vectors = truths_vectors.cpu().numpy()
+            args["truths_vectors"] = truths_vectors
+        else:
+            truths_matrices = Y[val_index]
+            assert len(truths_matrices.shape) == 3
+            if isinstance(truths_matrices, torch.Tensor):
+                truths_matrices = truths_matrices.cpu().numpy()
+            args["truths_matrices"] = truths_matrices
 
         if prediction_vector:
-            evaluations = evaluate(
-                truths_vectors,
-                predictions_vectors=Y_prediction,
-                include_diagonal=include_diagonal,
-            )
+            args["predictions_vectors"] = Y_prediction
         else:
-            evaluations = evaluate(
-                truths_vectors,
-                predictions_matrixes=Y_prediction,
-                include_diagonal=include_diagonal,
-            )
+            args["predictions_matrices"] = Y_prediction.cpu().numpy()
+
+        evaluations = evaluate(**args)
 
         scores.append(evaluations)
 
-    ram_usage = process.memory_info().rss / (1024**2)  # in MBs
+    ram_usage = process.memory_info().rss / (1024 ** 2)  # in MBs
 
-    if logs:
+    if verbose:
         print(f"Training time: {training_time} seconds")
         print(f"RAM usage: {ram_usage} MB")
 
@@ -232,7 +237,6 @@ def plot_evaluations(scores):
     fig.suptitle("Performance Measures for Each Fold and Average", fontsize=16)
 
     for i, fold_evaluation in enumerate(scores):
-
         row = i // 2
         col = i % 2
 
@@ -253,3 +257,4 @@ def plot_evaluations(scores):
     axes[1, 1].set_xticklabels(labels)
 
     plt.show()
+    plt.savefig("performance_measures.png")
