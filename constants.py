@@ -1,8 +1,5 @@
 """
-constants.py - Constants
-
-Description:
-This file defines the constants used by all other modules.
+This file defines the constants used by other modules.
 """
 
 # Size of the vector for high-resolution samples
