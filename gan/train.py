@@ -51,7 +51,7 @@ def train(model, subjects_adj, subjects_labels, args, verbose=False):
 
                 hr = torch.from_numpy(hr).type(torch.FloatTensor).to(args.device)
 
-                mse_loss = criterion(model_outputs, hr) + torch.norm(model_outputs, p=2)
+                mse_loss = criterion(model_outputs, hr) + torch.norm(model.layer.weights, 2)
 
                 error = criterion(model_outputs, hr)
                 real_data = model_outputs.detach()
