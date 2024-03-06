@@ -63,7 +63,7 @@ def model_init():
 cv_scores = three_fold_cross_validation(model_init, lr_train_data, hr_train_data, random_state=random_seed,
                                         verbose=True, prediction_vector=False, label_vector=False)
 
-print(f"The average over the 3 folds is: {np.mean(cv_scores):.4f}")
+print(f"The average over the 3 folds is: {np.mean(cv_scores, axis=0):.4f}")
 
 # Train the model on the whole dataset
 model = AGSRNet(args.ks, args).to(device)
