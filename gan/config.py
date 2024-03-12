@@ -1,5 +1,5 @@
 """
-This file contains the Args class, which is used to store the arguments for the AGSR model.
+This file contains the Args class, which is used to store the arguments for the GUS-GAN model.
 """
 
 

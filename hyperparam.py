@@ -12,7 +12,7 @@ from gan.train import test as test_model
 from gan.train import train as train_model
 from utils import load_csv_files
 
-WANDB_API_KEY = "8d9dd70311672d46669adf913d75468f2ba2095b"  # Replace with your own API key
+WANDB_API_KEY = "..."  # Replace with your own API key
 
 
 def hyperparameter_search(lr_train, lr_test, hr_train, hr_test, device):
