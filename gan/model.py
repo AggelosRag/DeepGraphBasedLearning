@@ -1,6 +1,6 @@
 """
-This file contains the AGSRNet and Discriminator classes, which are used to define the neural network models for the
-AGSR model.
+This file contains the GUS and Discriminator classes, which are used to define the neural network models for the
+GUS-GAN model.
 
 It was adapted from the following source:
 https://github.com/basiralab/AGSR-Net
@@ -22,10 +22,13 @@ import torch_geometric.utils as gutils
 from gan.layers import *
 
 
-class AGSRNet(nn.Module):
+class GUS(nn.Module):
+    """
+    The GUS model (GRSLayer-U-Net-SSGConvs) used for the GAN model. Based on the AGSR-Net model.
+    """
 
     def __init__(self, ks, args):
-        super(AGSRNet, self).__init__()
+        super(GUS, self).__init__()
 
         self.lr_dim = args.lr_dim
         self.hr_dim = args.hr_dim
@@ -93,13 +96,13 @@ class AGSRNet(nn.Module):
 
 class Discriminator(nn.Module):
     """
-    The Discriminator model used for regularising the AGSR model during training.
+    The Discriminator model used for regularising the GUS model during training.
     """
     def __init__(self, args):
         super(Discriminator, self).__init__()
 
         self.net = nn.Sequential(
-            nn.Linear(args.hr_dim * args.hr_dim, args.hr_dim),
+            nn.Linear(args.hr_dim, args.hr_dim),
             nn.ReLU(inplace=True),
             nn.Linear(args.hr_dim, args.hr_dim),
             nn.ReLU(inplace=True),
@@ -108,7 +111,6 @@ class Discriminator(nn.Module):
         )
 
     def forward(self, inputs):
-        inputs = inputs.reshape(-1)
         output = self.net(inputs)
         return torch.abs(output)
 

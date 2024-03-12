@@ -60,8 +60,8 @@ def train(model, subjects_adj, subjects_labels, args, verbose=False):
                 d_real = netD(real_data)
                 d_fake = netD(fake_data)
 
-                dc_loss_real = bce_loss(d_real, torch.ones(1, device=args.device))
-                dc_loss_fake = bce_loss(d_fake, torch.zeros(1, device=args.device))
+                dc_loss_real = bce_loss(d_real, torch.ones_like(d_real))
+                dc_loss_fake = bce_loss(d_fake, torch.zeros_like(d_fake))
                 dc_loss = dc_loss_real + dc_loss_fake
 
                 dc_loss.backward()
@@ -69,7 +69,7 @@ def train(model, subjects_adj, subjects_labels, args, verbose=False):
 
                 d_fake = netD(gaussian_noise_layer(hr, args))
 
-                gen_loss = bce_loss(d_fake, torch.ones(1, device=args.device))
+                gen_loss = bce_loss(d_fake, torch.ones_like(d_fake))
                 generator_loss = gen_loss + mse_loss
                 generator_loss.backward()
                 optimizerG.step()
@@ -108,7 +108,7 @@ def test(model, test_g, test_labels, args):
 
     for (lr_A, lr_X), hr in zip(test_g, test_labels):
         all_zeros_hr = not np.any(hr)
-        all_zeros_lr = not np.any(lr_A)
+        all_zeros_lr = not torch.any(lr_A)
         if not all_zeros_lr and not all_zeros_hr:
             hr = torch.from_numpy(hr).type(torch.FloatTensor).to(args.device)
             preds = model(lr_A, lr_X)

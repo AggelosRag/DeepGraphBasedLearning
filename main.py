@@ -13,7 +13,7 @@ import torch
 from sklearn.model_selection import train_test_split
 
 from gan.config import Args
-from gan.model import AGSRNet
+from gan.model import GUS
 from gan.preprocessing import degree_normalisation, preprocess_data
 from gan.train import train as train_model
 from utils import load_csv_files, three_fold_cross_validation, save_csv_prediction, plot_evaluations
@@ -48,6 +48,9 @@ args = Args()
 args.device = device
 args.normalisation_function = degree_normalisation
 
+# print the args
+print(args)
+
 lr_train_A, lr_train_X = preprocess_data(lr_train_data, args)
 lr_train_data = torch.stack([lr_train_A, lr_train_X], dim=1)
 
@@ -55,7 +58,7 @@ lr_train, lr_test, hr_train, hr_test = train_test_split(lr_train_data, hr_train_
 
 
 def model_init():
-    model = AGSRNet(args.ks, args).to(device)
+    model = GUS(args.ks, args).to(device)
     return model
 
 
@@ -63,10 +66,10 @@ def model_init():
 cv_scores = three_fold_cross_validation(model_init, lr_train_data, hr_train_data, random_state=random_seed,
                                         verbose=True, prediction_vector=False, label_vector=False)
 
-print(f"The average over the 3 folds is: {np.mean(cv_scores, axis=0):.4f}")
+print(f"The average over the 3 folds is: {torch.mean(torch.tensor(cv_scores), dim=0)}")
 
 # Train the model on the whole dataset
-model = AGSRNet(args.ks, args).to(device)
+model = GUS(args.ks, args).to(device)
 model = train_model(model, lr_train_data, hr_train_data, args=args, verbose=True)  # train on the whole dataset
 # save the trained model
 torch.save(model, "model.pth")
