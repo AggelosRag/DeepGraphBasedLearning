@@ -149,6 +149,7 @@ def three_fold_cross_validation(
     - random_state: Seed for reproducibility in cross-validation.
     - include_diagonal: Include diagonal elements during vectorization if input_matrix is True.
     - verbose: Print logging information.
+    - device: Device to use for training and evaluation.
 
     Returns:
     - scores: List of evaluation scores for each fold.
@@ -161,7 +162,7 @@ def three_fold_cross_validation(
 
     process = psutil.Process()
 
-    for train_index, val_index in kf.split(X):
+    for index, (train_index, val_index) in enumerate(kf.split(X)):
         model = model_init()
         start_time = time.time()
         model.fit(X[train_index], Y[train_index], verbose=verbose)
@@ -194,6 +195,9 @@ def three_fold_cross_validation(
 
         scores.append(evaluations)
 
+        save_csv_prediction(Y_prediction, pred_matrix=True, include_diagonal=include_diagonal, logs=verbose,
+                            file_name=f"predictions_fold_{index}")
+
     ram_usage = process.memory_info().rss / (1024 ** 2)  # in MBs
 
     if verbose:
@@ -212,8 +216,8 @@ def plot_evaluations(scores):
     """
 
     assert len(scores) == 3
-    if len(scores[0]) == 6:
-        labels = ["MAE", "PCC", "JSD", "MAE BC", "MAE EC", "MAE PC"]
+    if len(scores[0]) == 8:
+        labels = ["MAE", "PCC", "JSD", "BC", "EC", "PC", "DC", "CL"]
         colors = [
             "indianred",
             "orange",
@@ -221,17 +225,21 @@ def plot_evaluations(scores):
             "aquamarine",
             "royalblue",
             "hotpink",
+            "indigo",
+            "darkturquoise",
         ]
     else:
-        labels = ["MAE", "PCC", "JSD", "MAE BC", "MAE EC", "MAE PC", "FID"]
+        labels = ["MAE", "PCC", "JSD", "BC", "EC", "PC", "DC", "CL", "FID"]
         colors = [
             "indianred",
             "orange",
             "limegreen",
             "aquamarine",
             "royalblue",
-            "blueviolet",
             "hotpink",
+            "indigo",
+            "darkturquoise",
+            "darkorange",
         ]
     fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12, 8))
     fig.suptitle("Performance Measures for Each Fold and Average", fontsize=16)
@@ -242,7 +250,8 @@ def plot_evaluations(scores):
 
         axes[row, col].bar(range(len(fold_evaluation)), fold_evaluation, color=colors)
         axes[row, col].set_title("Fold " + str(i + 1))
-        axes[row, col].set_ylim(0, 1)
+        # set the top of the y-axis to the maximum value found
+        axes[row, col].set_ylim(0, 1.1 * max(fold_evaluation))
         axes[row, col].set_xticks(np.arange(len(labels)))
         axes[row, col].set_xticklabels(labels)
 

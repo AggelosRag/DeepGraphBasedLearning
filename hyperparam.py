@@ -6,13 +6,13 @@ from sklearn.model_selection import train_test_split
 
 import wandb
 from gan.config import Args
-from gan.model import AGSRNet
+from gan.model import GUS
 from gan.preprocessing import degree_normalisation, preprocess_data
 from gan.train import test as test_model
 from gan.train import train as train_model
 from utils import load_csv_files
 
-WANDB_API_KEY = ...  # Replace with your own API key
+WANDB_API_KEY = "8d9dd70311672d46669adf913d75468f2ba2095b"  # Replace with your own API key
 
 
 def hyperparameter_search(lr_train, lr_test, hr_train, hr_test, device):
@@ -26,7 +26,7 @@ def hyperparameter_search(lr_train, lr_test, hr_train, hr_test, device):
     args.normalisation_function = degree_normalisation
 
     sweep_config = {
-        "name": "AGSRNet",
+        "name": "GUS-GAN",
         "method": "random",
         "metric": {"name": "loss", "goal": "minimize"},
         "parameters": {
@@ -34,11 +34,17 @@ def hyperparameter_search(lr_train, lr_test, hr_train, hr_test, device):
                 "values": [0.0001, 0.0005, 0.001, 0.005, 0.01]
             },
             "init_x_method": {
-                "values": ["eye", "random", "topology"]
+                "values": ["eye", "topology"]
             },
             "hidden_dim": {
                 "values": [128, 256, 512, 1024]
             },
+            "k": {
+                "values": [2, 3, 4, 5, 7]
+            },
+            "alpha": {
+                "values": [0.1, 0.3, 0.5, 0.7, 0.9]
+            }
         }
     }
 
@@ -50,8 +56,10 @@ def hyperparameter_search(lr_train, lr_test, hr_train, hr_test, device):
             args.lr = config["lr"]
             args.hidden_dim = config["hidden_dim"]
             args.init_x_method = config["init_x_method"]
+            args.k = config["k"]
+            args.alpha = config["alpha"]
 
-            model = AGSRNet(args.ks, args).to(device)
+            model = GUS(args.ks, args).to(device)
             model = train_model(model, lr_train, hr_train, args)
             scores = test_model(model, lr_test, hr_test, args)
             wandb.log({"loss": scores})

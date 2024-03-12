@@ -21,6 +21,9 @@ class Args:
         self.grace_period = 10
         self.normalisation_function = lambda x: x
         self.init_x_method = "topology"
-        self.ks = [0.9, 0.7, 0.6, 0.5]
+        self.ks = [0.8, 0.8, 0.8, 0.8]
         self.k = 3
-        self.alpha = 0.5
+        self.alpha = 0.1
+
+    def __str__(self):
+        return str(self.__dict__)

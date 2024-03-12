@@ -35,6 +35,7 @@ def evaluate(
     - include_diagonal (bool, optional): Include diagonal elements in computations.
     - verbose (bool, optional): Print intermediate results if True.
     - include_fid (bool, optional): Include Frechet Inception Distance (FID) computation if True.
+    - device (str, optional): Device to use for computations.
 
     Returns:
     - List containing [MAE, PCC, Jensen-Shannon Distance, Avg MAE Betweenness Centrality,
@@ -87,6 +88,8 @@ def evaluate(
     mae_bc = []
     mae_ec = []
     mae_pc = []
+    mae_dc = []
+    mae_cl = []
 
     # Iterate over each test sample
     for i in range(num_test_samples):
@@ -110,29 +113,42 @@ def evaluate(
         pred_bc = nx.betweenness_centrality(pred_graph, weight="weight")
         pred_ec = nx.eigenvector_centrality(pred_graph, weight="weight")
         pred_pc = nx.pagerank(pred_graph, weight="weight")
+        pred_dc = nx.degree_centrality(pred_graph)
+        pred_cl = nx.clustering(pred_graph, weight="weight")
 
         gt_bc = nx.betweenness_centrality(gt_graph, weight="weight")
         gt_ec = nx.eigenvector_centrality(gt_graph, weight="weight")
         gt_pc = nx.pagerank(gt_graph, weight="weight")
+        gt_dc = nx.degree_centrality(gt_graph)
+        gt_cl = nx.clustering(gt_graph, weight="weight")
 
         # Convert centrality dictionaries to lists
         pred_bc_values = list(pred_bc.values())
         pred_ec_values = list(pred_ec.values())
         pred_pc_values = list(pred_pc.values())
+        pred_dc_values = list(pred_dc.values())
+        pred_cl_values = list(pred_cl.values())
+
 
         gt_bc_values = list(gt_bc.values())
         gt_ec_values = list(gt_ec.values())
         gt_pc_values = list(gt_pc.values())
+        gt_dc_values = list(gt_dc.values())
+        gt_cl_values = list(gt_cl.values())
 
         # Compute MAEs
         mae_bc.append(mean_absolute_error(pred_bc_values, gt_bc_values))
         mae_ec.append(mean_absolute_error(pred_ec_values, gt_ec_values))
         mae_pc.append(mean_absolute_error(pred_pc_values, gt_pc_values))
+        mae_dc.append(mean_absolute_error(pred_dc_values, gt_dc_values))
+        mae_cl.append(mean_absolute_error(pred_cl_values, gt_cl_values))
 
     # Compute average MAEs
     avg_mae_bc = sum(mae_bc) / len(mae_bc)
     avg_mae_ec = sum(mae_ec) / len(mae_ec)
     avg_mae_pc = sum(mae_pc) / len(mae_pc)
+    avg_mae_dc = sum(mae_dc) / len(mae_dc)
+    avg_mae_cl = sum(mae_cl) / len(mae_cl)
 
     # vectorize and flatten
     pred_1d = predictions_vectors.flatten()
@@ -144,16 +160,24 @@ def evaluate(
 
     if include_fid:
         # FID - Expensive computation
-        mu_real = torch.mean(truths_vectors, dim=0)
-        cov_real = torch.cov(truths_vectors.t())
-        mu_gen = torch.mean(predictions_vectors, dim=0)
-        cov_gen = torch.cov(predictions_vectors.t())
+        if isinstance(predictions_vectors, np.ndarray):
+            predictions_tensors = torch.from_numpy(predictions_vectors)
+        else:
+            predictions_tensors = predictions_vectors
+        if isinstance(truths_vectors, np.ndarray):
+            truths_tensors = torch.from_numpy(truths_vectors)
+        else:
+            truths_tensors = truths_vectors
+        mu_real = torch.mean(truths_tensors, dim=0)
+        cov_real = torch.cov(truths_tensors.t())
+        mu_gen = torch.mean(predictions_tensors, dim=0)
+        cov_gen = torch.cov(predictions_tensors.t())
         fid = torch.sqrt(
             torch.norm(torch.sub(mu_real, mu_gen)) ** 2
             + torch.trace(
                 cov_real + cov_gen - 2 * torch.sqrt(torch.matmul(cov_real, cov_gen))
             )
-        )
+        ).cpu().numpy()
 
     if verbose:
         print("MAE: ", mae)
@@ -162,9 +186,11 @@ def evaluate(
         print("Average MAE betweenness centrality:", avg_mae_bc)
         print("Average MAE eigenvector centrality:", avg_mae_ec)
         print("Average MAE PageRank centrality:", avg_mae_pc)
+        print("Average MAE degree centrality:", avg_mae_dc)
+        print("Average MAE clustering coefficient:", avg_mae_cl)
         if include_fid:
             print("Frechet Inception Distance:", fid)
     if include_fid:
-        return [mae, pcc, js_dis, avg_mae_bc, avg_mae_ec, avg_mae_pc, fid]
+        return [mae, pcc, js_dis, avg_mae_bc, avg_mae_ec, avg_mae_pc, avg_mae_dc, avg_mae_cl, fid]
     else:
-        return [mae, pcc, js_dis, avg_mae_bc, avg_mae_ec, avg_mae_pc]
+        return [mae, pcc, js_dis, avg_mae_bc, avg_mae_ec, avg_mae_pc, avg_mae_dc, avg_mae_cl]
