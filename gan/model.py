@@ -6,10 +6,9 @@ It was adapted from the following source:
 https://github.com/basiralab/AGSR-Net
 
 The main change made to the original implementation include:
+- changing the u_net implementation to use the GraphUNet class from the PyTorch Geometric library
 - changing the convolutional layer to use the SSGConv class from the PyTorch Geometric library instead of the basic
     graph convolutional layer
-- changing the discriminator to take in a single input and output a single value instead of taking in a batch of vectors
-- changing the u_net implementation to use the GraphUNet class from the PyTorch Geometric library
 - changing the normalisation function to be a parameter of the Args class which allows for the normalisation function to
     be easily adjusted (degree, pagerank, etc.)
 - changing the initialisation method to be a parameter of the Args class which allows for the initialisation method to \

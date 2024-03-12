@@ -165,6 +165,10 @@ hyperparameter. Note that the `wandb` api key should be set at the top of the fi
 We do not recommend running the hyperparameter search or the training locally, as it is very time-consuming. Instead, we
 used the GPU cluster provided by the university.
 
+Note: it seems like the training process is not fully deterministic, so the results may vary slightly between runs. Even
+though we set the random seed at the beginning of the training process, the logs show small differences in the results
+and the final predictions.
+
 ## Results
 
 We evaluated robustness and generalisation of our model using 3-fold Cross Validation. Employing a range of performance
