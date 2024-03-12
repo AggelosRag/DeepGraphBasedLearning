@@ -11,7 +11,10 @@ padding.
 import torch
 import torch.nn as nn
 
-from gan.initializations import *
+from gan.initializations import weight_variable_glorot
+from set_seed import set_seed
+
+set_seed(42)
 
 
 class GSRLayer(nn.Module):

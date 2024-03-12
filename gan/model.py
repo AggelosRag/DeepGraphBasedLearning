@@ -15,10 +15,15 @@ The main change made to the original implementation include:
     be easily adjusted (topology, eye, random)
 """
 
+import torch
+import torch.nn as nn
 import torch_geometric.nn as gnn
 import torch_geometric.utils as gutils
 
-from gan.layers import *
+from gan.layers import GSRLayer
+from set_seed import set_seed
+
+set_seed(42)
 
 
 class GUS(nn.Module):
@@ -97,6 +102,7 @@ class Discriminator(nn.Module):
     """
     The Discriminator model used for regularising the GUS model during training.
     """
+
     def __init__(self, args):
         super(Discriminator, self).__init__()
 

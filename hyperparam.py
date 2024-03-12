@@ -10,7 +10,10 @@ from gan.model import GUS
 from gan.preprocessing import degree_normalisation, preprocess_data
 from gan.train import test as test_model
 from gan.train import train as train_model
+from set_seed import set_seed
 from utils import load_csv_files
+
+set_seed(42)
 
 WANDB_API_KEY = "..."  # Replace with your own API key
 

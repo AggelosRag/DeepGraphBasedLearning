@@ -9,6 +9,9 @@ from sklearn.metrics import mean_absolute_error
 
 from MatrixVectorizer import MatrixVectorizer
 from constants import *
+from set_seed import set_seed
+
+set_seed(42)
 
 
 def evaluate(
@@ -128,7 +131,6 @@ def evaluate(
         pred_pc_values = list(pred_pc.values())
         pred_dc_values = list(pred_dc.values())
         pred_cl_values = list(pred_cl.values())
-
 
         gt_bc_values = list(gt_bc.values())
         gt_ec_values = list(gt_ec.values())

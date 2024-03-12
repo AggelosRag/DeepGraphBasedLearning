@@ -11,6 +11,10 @@ import networkx as nx
 import numpy as np
 import torch
 
+from set_seed import set_seed
+
+set_seed(42)
+
 
 def init_x(A, dim, device, method='eye'):
     """

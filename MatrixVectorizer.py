@@ -2,6 +2,10 @@
 
 import numpy as np
 
+from set_seed import set_seed
+
+set_seed(42)
+
 
 class MatrixVectorizer:
     """

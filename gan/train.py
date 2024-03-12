@@ -10,12 +10,16 @@ The main changes include:
     adjacency matrix and the weights of the GSR layer, and adding an L2 norm to the MSE loss
 """
 
+import numpy as np
 import torch
+import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
 
-from gan.model import *
-from gan.preprocessing import *
+from gan.model import Discriminator, gaussian_noise_layer
+from set_seed import set_seed
+
+set_seed(42)
 
 
 def train(model, subjects_adj, subjects_labels, args, verbose=False):

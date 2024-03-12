@@ -6,9 +6,6 @@ training a model, and generating predictions in a machine learning task.
 
 """
 # Imports
-import random
-
-import numpy as np
 import torch
 from sklearn.model_selection import train_test_split
 
@@ -17,26 +14,17 @@ from gan.model import GUS
 from gan.preprocessing import degree_normalisation, preprocess_data
 from gan.train import train as train_model
 from utils import load_csv_files, three_fold_cross_validation, save_csv_prediction, plot_evaluations
+from set_seed import set_seed
+
 
 # Configurations
-
 # Set a fixed random seed for reproducibility across multiple libraries
 random_seed = 42
-random.seed(random_seed)
-np.random.seed(random_seed)
-torch.manual_seed(random_seed)
+set_seed(random_seed)
 
-torch.cuda.empty_cache()
-
-# Check for CUDA (GPU support) and set device accordingly
 if torch.cuda.is_available():
     device = torch.device("cuda")
     print("CUDA is available. Using GPU.")
-    torch.cuda.manual_seed(random_seed)
-    torch.cuda.manual_seed_all(random_seed)  # For multi-GPU setups
-    # Additional settings for ensuring reproducibility on CUDA
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
 else:
     device = torch.device("cpu")
     print("CUDA not available. Using CPU.")

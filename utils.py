@@ -20,6 +20,9 @@ from sklearn.model_selection import KFold
 from Evaluator import evaluate
 from MatrixVectorizer import MatrixVectorizer
 from constants import *
+from set_seed import set_seed
+
+set_seed(42)
 
 
 def load_csv_files(return_matrix=False, include_diagonal=False):
