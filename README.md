@@ -167,7 +167,9 @@ used the GPU cluster provided by the university.
 
 Note: it seems like the training process is not fully deterministic, so the results may vary slightly between runs. Even
 though we set the random seed at the beginning of the training process, the logs show small differences in the results
-and the final predictions.
+and the final predictions. This might be due to certain operations on the GPU that cannot guarantee determinism. We
+cannot verify if the results are reproducible on CPU because GraphUNet is not supported on CPU. We apologise for the
+inconvenience.
 
 ## Results
 
