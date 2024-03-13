@@ -74,7 +74,12 @@ def hyperparameter_search(lr_train, lr_test, hr_train, hr_test, device):
 
 if __name__ == "__main__":
     """
-    The main function to run the hyperparameter search. Load and preprocess the data, and then run the hyperparameter search.
+    The main function to run the hyperparameter search. Load and preprocess the data, and then run the hyperparameter 
+    search.
+    
+    To run this file, you will need to replace the WANDB_API_KEY with your own API key from Weights and Biases.
+    We do not recommend running this file locally, as it will take a long time to complete. Instead, we recommend 
+    using the university GPU cluster.
     """
 
     # Set a fixed random seed for reproducibility across multiple libraries

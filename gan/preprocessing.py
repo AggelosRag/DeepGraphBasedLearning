@@ -20,6 +20,11 @@ def init_x(A, dim, device, method='eye'):
     """
     Initialise the X matrix for the given adjacency matrix A. Includes options for eye, random, and topology-based
     initialisation.
+
+    After experimenting with the different initialisation methods, it was found that the topology-based method
+    consistently produced the best results. This method calculates the average of the centrality, PageRank, betweenness,
+    closeness, degree, and clustering coefficient values for each node in the graph, and uses this average to initialise
+    the X matrix.
     """
     if method == 'eye':
         return torch.eye(dim, dtype=torch.float32, device=device)
@@ -75,6 +80,10 @@ def unpad_HR_adj(label, split):
     """
     return label[split:-split, split:-split]
 
+
+# The different normalisation functions we tried out. After experimenting with the different normalisation methods,
+# it was found that the degree normalisation method consistently produced the best results. This method divides the
+# adjacency matrix by the degree of each node in the graph.
 
 def degree_normalisation(G, adjacency):
     """

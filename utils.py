@@ -4,11 +4,9 @@ utils.py - Utility Functions
 Description:
 This module provides functions that may be useful for all the models used in this project, mostly related with:
 pre-processing, post-processing and evaluation
-
 """
 
 # Imports
-
 import time
 
 import matplotlib.pyplot as plt
@@ -77,9 +75,9 @@ def load_csv_files(return_matrix=False, include_diagonal=False):
                 sample, LR_MATRIX_SIZE, include_diagonal
             )
 
-        return (lr_train_matrices, hr_train_matrices, lr_test_matrices)
+        return lr_train_matrices, hr_train_matrices, lr_test_matrices
 
-    return (lr_train_data, hr_train_data, lr_test_data)
+    return lr_train_data, hr_train_data, lr_test_data
 
 
 def save_csv_prediction(

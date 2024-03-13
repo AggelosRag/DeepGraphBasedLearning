@@ -1,4 +1,4 @@
-# File taken from: https://github.com/basiralab/ DGL/blob/main/Project/MatrixVectorizer.py.
+# File adapted from: https://github.com/basiralab/ DGL/blob/main/Project/MatrixVectorizer.py.
 
 import numpy as np
 

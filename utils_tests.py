@@ -1,5 +1,6 @@
 """
-This file contains unit tests for the functions in utils.py. The functions are tested for correctness and expected behavior.
+This file contains unit tests for the functions in utils.py. The functions are tested for correctness and expected
+behaviour.
 """
 
 import unittest

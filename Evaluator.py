@@ -1,4 +1,4 @@
-# Partially from: https://github.com/basiralab/DGL/blob/main/Project/evaluation_measures.py
+# Adapted from: https://github.com/basiralab/DGL/blob/main/Project/evaluation_measures.py
 
 import networkx as nx
 import numpy as np
@@ -41,9 +41,9 @@ def evaluate(
     - device (str, optional): Device to use for computations.
 
     Returns:
-    - List containing [MAE, PCC, Jensen-Shannon Distance, Avg MAE Betweenness Centrality,
-                      Avg MAE Eigenvector Centrality, Avg MAE PageRank Centrality].
-                      If include_fid is True, FID is also included in the list.
+    - List containing [MAE, PCC, Jensen-Shannon Distance, Avg MAE Betweenness Centrality, Avg MAE Eigenvector
+    Centrality, Avg MAE PageRank Centrality, Avg MAE Degree Centrality, Avg MAE Clustering Coefficient].
+    If include_fid is True, FID is also included in the list.
     """
 
     # Check on optional inputs

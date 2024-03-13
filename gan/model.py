@@ -28,7 +28,7 @@ set_seed(42)
 
 class GUS(nn.Module):
     """
-    The GUS model (GRSLayer-U-Net-SSGConvs) used for the GAN model. Based on the AGSR-Net model.
+    The GUS model (GRSLayer-U-Net-SSGConv) used for the GAN model. Based on the AGSR-Net model.
     """
 
     def __init__(self, ks, args):
@@ -87,7 +87,7 @@ class GUS(nn.Module):
         """
         self.eval()
         with torch.no_grad():
-            # this is a batch, we need to iterate over the batch
+            # this is a batch, we need to iterate over it
             pred = []
             for (lr_A, lr_X) in X:
                 p = self(lr_A, lr_X)
