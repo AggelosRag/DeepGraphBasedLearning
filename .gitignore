@@ -177,3 +177,6 @@ pyrightconfig.json
 
 .idea/
 wandb/
+
+data/
+submissions/
